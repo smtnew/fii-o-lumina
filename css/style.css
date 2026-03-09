@@ -5,26 +5,28 @@
 
 /* ---------- Design Tokens ---------- */
 :root {
-  --gold: #D4A017;
-  --gold-dark: #B8860B;
-  --gold-light: #F5DEB3;
-  --gold-bg: #FDF3D6;
-  --cream: #FDF8F0;
-  --white: #FFFFFF;
-  --text: #2D2D2D;
+  --gold: #d4a017;
+  --gold-dark: #b8860b;
+  --gold-light: #f5deb3;
+  --gold-bg: #fdf3d6;
+  --cream: #fdf8f0;
+  --white: #ffffff;
+  --text: #2d2d2d;
   --text-light: #666666;
-  --border: #E8E0D4;
-  --shadow: 0 2px 12px rgba(0,0,0,0.08);
-  --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
+  --border: #e8e0d4;
+  --shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
   --radius: 12px;
   --radius-sm: 8px;
-  --font-heading: 'Playfair Display', Georgia, serif;
-  --font-body: 'Open Sans', -apple-system, sans-serif;
+  --font-heading: "Playfair Display", Georgia, serif;
+  --font-body: "Open Sans", -apple-system, sans-serif;
   --container: 1080px;
 }
 
 /* ---------- Reset ---------- */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -88,7 +90,7 @@ ul {
 
 .section__title--decorated::before,
 .section__title--decorated::after {
-  content: '';
+  content: "";
   flex: 1;
   height: 1px;
   background: var(--border);
@@ -404,7 +406,7 @@ ul {
 }
 
 .donate-card__items li::before {
-  content: '-';
+  content: "-";
   position: absolute;
   left: 0;
 }
@@ -515,7 +517,9 @@ ul {
   justify-content: center;
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.3s, visibility 0.3s;
+  transition:
+    opacity 0.3s,
+    visibility 0.3s;
 }
 
 .modal.is-open {
@@ -608,7 +612,7 @@ ul {
 }
 
 .form-group input::placeholder {
-  color: #BBB;
+  color: #bbb;
 }
 
 /* ---------- Amount Presets ---------- */
