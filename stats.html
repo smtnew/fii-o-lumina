@@ -677,7 +677,6 @@
         <button
           class="btn btn--primary btn--full"
           id="loginBtn"
-          onclick="handleLogin()"
         >
           Intră în dashboard
         </button>
@@ -695,7 +694,7 @@
           </div>
           <div class="dash-header__user">
             <span id="userEmail"></span>
-            <button class="btn btn--outline btn--sm" onclick="handleLogout()">
+            <button class="btn btn--outline btn--sm" id="logoutBtn">
               Deconectare
             </button>
             <a href="index.html" class="btn btn--outline btn--sm"
@@ -762,17 +761,13 @@
             />
           </div>
           <div class="filters-actions">
-            <button class="btn btn--primary" onclick="applyFilters()">
+            <button class="btn btn--primary" id="applyFiltersBtn">
               Aplică filtre
             </button>
-            <button class="btn btn--outline" onclick="resetFilters()">
+            <button class="btn btn--outline" id="resetFiltersBtn">
               Resetează
             </button>
-            <button
-              class="btn btn--outline"
-              onclick="exportCSV()"
-              title="Exportă CSV"
-            >
+            <button class="btn btn--outline" id="exportCsvBtn" title="Exportă CSV">
               ⬇ CSV
             </button>
           </div>
@@ -889,6 +884,7 @@
     </div>
 
     <script>
+      (function () {
       "use strict";
 
       // ── CONFIG & SUPABASE ────────────────────────────────────────
@@ -946,6 +942,13 @@
           else showLogin();
         });
 
+        // Button listeners
+        document.getElementById("loginBtn").addEventListener("click", handleLogin);
+        document.getElementById("logoutBtn").addEventListener("click", handleLogout);
+        document.getElementById("applyFiltersBtn").addEventListener("click", applyFilters);
+        document.getElementById("resetFiltersBtn").addEventListener("click", resetFilters);
+        document.getElementById("exportCsvBtn").addEventListener("click", exportCSV);
+
         // Enter key on login
         document
           .getElementById("loginPassword")
@@ -957,6 +960,12 @@
           .addEventListener("keydown", (e) => {
             if (e.key === "Enter") handleLogin();
           });
+
+        // Pagination event delegation
+        document.getElementById("pagination").addEventListener("click", (e) => {
+          const btn = e.target.closest("button[data-page]");
+          if (btn && !btn.disabled) goPage(parseInt(btn.dataset.page, 10));
+        });
 
         // Sort headers
         document.querySelectorAll("thead th.sortable").forEach((th) => {
@@ -1403,18 +1412,18 @@
           return;
         }
 
-        let html = `<button onclick="goPage(${currentPage - 1})" ${currentPage === 1 ? "disabled" : ""}>‹</button>`;
+        let html = `<button data-page="${currentPage - 1}" ${currentPage === 1 ? "disabled" : ""}>‹</button>`;
 
         const range = pageRange(currentPage, totalPages);
         range.forEach((p) => {
           if (p === "…") {
             html += `<button disabled>…</button>`;
           } else {
-            html += `<button class="${p === currentPage ? "active" : ""}" onclick="goPage(${p})">${p}</button>`;
+            html += `<button class="${p === currentPage ? "active" : ""}" data-page="${p}">${p}</button>`;
           }
         });
 
-        html += `<button onclick="goPage(${currentPage + 1})" ${currentPage === totalPages ? "disabled" : ""}>›</button>`;
+        html += `<button data-page="${currentPage + 1}" ${currentPage === totalPages ? "disabled" : ""}>›</button>`;
         pg.innerHTML = html;
       }
 
@@ -1526,6 +1535,8 @@
 
       // ── START ────────────────────────────────────────────────────
       init();
+
+      })(); // end IIFE
     </script>
   </body>
 </html>
