@@ -93,3 +93,18 @@ CREATE OR REPLACE VIEW campaign_progress AS
 
 -- Grant anon access to the view
 GRANT SELECT ON campaign_progress TO anon;
+
+-- 8. Public function: returns count of donated family packages (plase)
+--    SECURITY DEFINER bypasses RLS on payments so anon can read aggregate only
+CREATE OR REPLACE FUNCTION get_plase_count()
+RETURNS integer
+LANGUAGE sql
+SECURITY DEFINER
+STABLE
+AS $$
+  SELECT COUNT(*)::integer
+  FROM payments
+  WHERE donation_type IN ('family_150', 'family_250', 'family_400');
+$$;
+
+GRANT EXECUTE ON FUNCTION get_plase_count() TO anon;

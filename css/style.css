@@ -417,6 +417,12 @@ ul {
   text-align: left;
 }
 
+.donate-card__progress--plase {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--gold-bg);
+}
+
 .progress__label {
   font-size: 0.85rem;
   margin-bottom: 2px;
