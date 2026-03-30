@@ -88,8 +88,7 @@ CREATE POLICY "payments_select_service"
 -- 7. Public view for frontend (exposes only what's needed)
 CREATE OR REPLACE VIEW campaign_progress AS
   SELECT id, name, target_amount, amount_raised, status
-  FROM campaigns
-  WHERE status = 'active';
+  FROM campaigns;
 
 -- Grant anon access to the view
 GRANT SELECT ON campaign_progress TO anon;

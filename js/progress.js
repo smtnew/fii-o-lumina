@@ -10,7 +10,7 @@
   }
 
   function updateProgressUI(raised, target) {
-    var percent = Math.min((raised / target) * 100, 100);
+    var percent = target > 0 ? Math.min((raised / target) * 100, 100) : 0;
 
     var amountEl = document.getElementById('amountRaised');
     var fillEl = document.getElementById('progressFill');
