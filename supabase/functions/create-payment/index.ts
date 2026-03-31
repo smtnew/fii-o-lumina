@@ -198,37 +198,20 @@ serve(async (req) => {
       );
     }
 
-    // For campaign, validate campaign exists and is active
+    // Resolve campaign ID if needed
     let resolvedCampaignId = campaign_id || null;
-    if (donation_type === "campaign") {
+    if (donation_type === "campaign" && !resolvedCampaignId) {
       const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
       const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
       const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-      if (resolvedCampaignId) {
-        const { data: campaign, error } = await supabase
-          .from("campaigns")
-          .select("id, status")
-          .eq("id", resolvedCampaignId)
-          .single();
+      const { data: campaigns } = await supabase
+        .from("campaigns")
+        .select("id")
+        .limit(1);
 
-        if (error || !campaign || campaign.status !== "active") {
-          return new Response(
-            JSON.stringify({ error: "Campaign not active" }),
-            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
-        }
-      } else {
-        // Get first active campaign
-        const { data: campaigns } = await supabase
-          .from("campaigns")
-          .select("id")
-          .eq("status", "active")
-          .limit(1);
-
-        if (campaigns && campaigns.length > 0) {
-          resolvedCampaignId = campaigns[0].id;
-        }
+      if (campaigns && campaigns.length > 0) {
+        resolvedCampaignId = campaigns[0].id;
       }
     }
 
