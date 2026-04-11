@@ -12,6 +12,7 @@
     />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2/dist/chartjs-plugin-datalabels.min.js"></script>
     <style>
       :root {
         --gold: #d4a017;
@@ -887,6 +888,45 @@
             <div class="pagination" id="pagination"></div>
           </div>
         </div>
+        <!-- Ambassador stats -->
+        <div style="margin-top:24px">
+          <div class="chart-card" style="margin-bottom:20px">
+            <div class="chart-card__title">
+              <span>🏅</span> Statistici per ambasador
+            </div>
+            <div class="chart-wrap" id="ambassadorChartWrap">
+              <canvas id="chartAmbassadors"></canvas>
+            </div>
+          </div>
+          <div class="table-card">
+            <div class="table-card__header">
+              <div class="table-card__title">
+                <span>👤</span> Totaluri per ambasador
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Ambasador</th>
+                    <th>Nr. donații</th>
+                    <th>Total (lei)</th>
+                  </tr>
+                </thead>
+                <tbody id="ambassadorTableBody">
+                  <tr>
+                    <td colspan="3">
+                      <div class="state-loading">
+                        <div class="spinner"></div>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
       </main>
     </div>
 
@@ -904,6 +944,7 @@
       let sortDir = "desc";
       let chartTimeline = null;
       let chartTypes = null;
+      let chartAmbassadors = null;
 
       const TYPE_LABELS = {
         family_150: "Familie 150 lei",
@@ -1103,6 +1144,7 @@
         setDefaultDateFilters();
         populateAmbassadorFilter();
         updateAll();
+        renderAmbassadorStats();
       }
 
       function setDefaultDateFilters() {
@@ -1365,6 +1407,109 @@
             },
           },
         });
+      }
+
+      // ── AMBASSADOR STATS ────────────────────────────────────────
+      function renderAmbassadorStats() {
+        const byAmb = {};
+        allPayments.forEach((p) => {
+          const name = (p.ambassador || "").trim() || "Nici unul";
+          if (!byAmb[name]) byAmb[name] = { count: 0, total: 0 };
+          byAmb[name].count++;
+          byAmb[name].total += p.amount;
+        });
+
+        const sorted = Object.entries(byAmb).sort((a, b) => b[1].total - a[1].total);
+        const labels = sorted.map(([name]) => name);
+        const totals = sorted.map(([, v]) => v.total);
+        const counts = sorted.map(([, v]) => v.count);
+
+        document.getElementById("chartAmbassadors").parentElement.style.height = "320px";
+
+        const PIE_COLORS = [
+          "#d4a017","#3182ce","#38a169","#805ad5","#e53e3e",
+          "#dd6b20","#2b6cb0","#276749","#6b46c1","#c05621",
+          "#b7791f","#2c7a7b",
+        ];
+        const bgColors = labels.map((n, i) =>
+          n === "Nici unul" ? "rgba(160,160,160,0.7)" : PIE_COLORS[i % PIE_COLORS.length] + "cc"
+        );
+        const borderColors = labels.map((n, i) =>
+          n === "Nici unul" ? "#999" : PIE_COLORS[i % PIE_COLORS.length]
+        );
+
+        const ctx = document.getElementById("chartAmbassadors").getContext("2d");
+        if (chartAmbassadors) chartAmbassadors.destroy();
+        chartAmbassadors = new Chart(ctx, {
+          type: "doughnut",
+          data: {
+            labels,
+            datasets: [
+              {
+                data: totals,
+                backgroundColor: bgColors,
+                borderColor: borderColors,
+                borderWidth: 2,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: "right",
+                labels: {
+                  font: { family: "Open Sans", size: 11 },
+                  padding: 10,
+                  boxWidth: 14,
+                },
+              },
+              tooltip: {
+                callbacks: {
+                  label: (c) => {
+                    const val = c.parsed;
+                    const total = c.dataset.data.reduce((s, v) => s + v, 0);
+                    const pct = total > 0 ? Math.round((val / total) * 100) : 0;
+                    return ` ${val.toLocaleString("ro-RO")} lei (${pct}%) · ${counts[c.dataIndex]} donații`;
+                  },
+                },
+              },
+              datalabels: {
+                color: "#fff",
+                font: { family: "Open Sans", size: 11, weight: "bold" },
+                textShadowBlur: 4,
+                textShadowColor: "rgba(0,0,0,0.5)",
+                formatter: (value, ctx) => {
+                  const total = ctx.dataset.data.reduce((s, v) => s + v, 0);
+                  const pct = total > 0 ? Math.round((value / total) * 100) : 0;
+                  return pct >= 4 ? pct + "%" : "";
+                },
+              },
+            },
+          },
+          plugins: [ChartDataLabels],
+        });
+
+        // Table
+        const grandTotal = totals.reduce((s, v) => s + v, 0);
+        const grandCount = counts.reduce((s, v) => s + v, 0);
+        document.getElementById("ambassadorTableBody").innerHTML =
+          sorted
+            .map(
+              ([name, v]) => `
+            <tr>
+              <td>${esc(name)}</td>
+              <td>${v.count.toLocaleString("ro-RO")}</td>
+              <td style="font-weight:700;font-family:var(--font-heading)">${v.total.toLocaleString("ro-RO")}</td>
+            </tr>`,
+            )
+            .join("") +
+          `<tr style="background:var(--gold-bg);font-weight:700;border-top:2px solid var(--gold-light)">
+            <td>TOTAL</td>
+            <td>${grandCount.toLocaleString("ro-RO")}</td>
+            <td style="font-family:var(--font-heading)">${grandTotal.toLocaleString("ro-RO")}</td>
+          </tr>`;
       }
 
       // ── TABLE ───────────────────────────────────────────────────
